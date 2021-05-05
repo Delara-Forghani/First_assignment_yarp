@@ -14,6 +14,7 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/Vocab.h>
 #include <yarp/sig/Image.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RpcClient.h>
@@ -61,7 +62,8 @@ protected:
         bool moved=true;
         // send commands to the robot head to move the correct joint
         // hint: correctly update the moved variable according to the control output
-        // FILL IN THE CODE
+        ipos->setRefSpeed(0,5);
+        moved=ipos->positionMove(0,angle);
 
         return moved;
     }
@@ -77,19 +79,24 @@ protected:
         {
             // get the center of the image
             // hint: class image stores information about its dimensions
-            double center_u=0.0;    //FILL IN THE CODE
-            double center_v=0.0;
+            int img_width=image->width();
+            int img_height=image->img_height();
+            double center_u=img_width/2;    //FILL IN THE CODE
+            double center_v=img_height/2;
 
             // get the rgb pixel of the image center
             // hint: you can use PixelRgb class
             // FILL IN THE CODE
+            PixelRgb& pix=image->pixel(center_u,center_v);
 
             // send pixel RGB color to the dedicated port
             // hint: use YARP Bottle class and consider RGB values
             // as Double.            
             Bottle &color=colorPort.prepare();
             // FILL IN THE CODE
-
+            color.addDouble(pix.r);
+            color.addDouble(pix.g);
+            color.addDouble(pix.b);
             colorPort.write();
         }
 
@@ -134,6 +141,22 @@ protected:
         // in position mode all the joints
         ienc->getAxes(&nAxes);
         // FILL IN THE CODE
+
+/*
+    bool setControlModes(std::vector<int>& data) {
+        return self->setControlModes(&data[0]);
+    }
+
+    bool setControlModes(int n_joint, std::vector<int>& joints, std::vector<int>& data) {
+        return self->setControlModes(n_joint, &joints[0], &data[0]);
+    }
+
+*/
+
+        for(int i=0; i<7;i++){
+            imod->setControlMode(i,VOCAB_CM_POSITION);  
+        }
+
 
         return true;
     }
@@ -208,6 +231,7 @@ public:
         // read a bottle containing the angle
         // note: do you want the port to wait or not for an answer?
         Bottle *angle_bottle;//= FILL IN THE CODE
+        anglePort.read(angle_bottle);
 
         // get the information for angle_bottle
         if (angle_bottle!=NULL)
@@ -217,6 +241,8 @@ public:
             // string ("angle") + double
             // how do you read it?
             // FILL IN THE CODE
+            string msg=angle_bottle->get(0).asString().c_str();
+            angle=angle_bottle->get(1).asDouble();
             return true;
         }
 
