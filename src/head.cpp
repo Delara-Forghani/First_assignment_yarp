@@ -14,7 +14,6 @@
 #include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Bottle.h>
-#include <yarp/os/Vocab.h>
 #include <yarp/sig/Image.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RpcClient.h>
@@ -62,8 +61,8 @@ protected:
         bool moved=true;
         // send commands to the robot head to move the correct joint
         // hint: correctly update the moved variable according to the control output
-        ipos->setRefSpeed(0,5);
-        moved=ipos->positionMove(0,angle);
+        ipos->setRefSpeed(2,5);
+        moved=ipos->positionMove(2,angle);
 
         return moved;
     }
@@ -153,7 +152,7 @@ protected:
 
 */
 
-        for(int i=0; i<7;i++){
+        for(int i=0; i<6;i++){
             imod->setControlMode(i,VOCAB_CM_POSITION);  
         }
 
@@ -231,7 +230,8 @@ public:
         // read a bottle containing the angle
         // note: do you want the port to wait or not for an answer?
         Bottle *angle_bottle;//= FILL IN THE CODE
-        anglePort.read(angle_bottle);
+
+        angle_bottle=anglePort.read();
 
         // get the information for angle_bottle
         if (angle_bottle!=NULL)
